@@ -7,15 +7,20 @@ const si = require('systeminformation');
 // TASK 1:
 class Agent
 {
+    //Modify function memoryLoad() to calculate the amount of memory currently used by the system as a percentage
+
+
     memoryLoad()
     {
-       // console.log( os.totalmem(), os.freemem() );
-       return 0;
+        //console.log( (os.totalmem() - os.freemem())*100/os.totalmem() );
+        return (os.totalmem() - os.freemem())*100/os.totalmem();
     }
     async cpu()
     {
-       let load = await si.currentLoad();
-       return 0;
+        // console.log(await (await si.currentLoad()).avgload*100);
+        // load = await si.currentLoad();
+        // console.log(laod)
+        return await (await si.currentLoad()).currentload;
     }
 }
 
@@ -46,7 +51,7 @@ async function main(name)
     {
         let payload = {
             memoryLoad: agent.memoryLoad(),
-            cpu: await agent.cpu()
+            cpu: await agent.cpu(),
         };
         let msg = JSON.stringify(payload);
         await client.publish(name, msg);

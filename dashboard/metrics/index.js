@@ -19,10 +19,10 @@ catch(e)
 /// Servers data being monitored.
 var servers = 
 [
-	{name: "computer", status: "#cccccc", scoreTrend : []},
-	{name: "alpine-01",url:`http://${ip}:9001/`, status: "#cccccc",  scoreTrend : [0]},
-	{name: "alpine-02",url:`http://${ip}:9002/`, status: "#cccccc",  scoreTrend : [0]},
-	{name: "alpine-03",url:`http://${ip}:9003/`, status: "#cccccc",  scoreTrend : [0]}
+	{name: "computer", status: "#cccccc", scoreTrend : [], test: 20},
+	{name: "alpine-01",url:`http://${ip}:9001/`, status: "#cccccc",  scoreTrend : [0], test: 4},
+	{name: "alpine-02",url:`http://${ip}:9002/`, status: "#cccccc",  scoreTrend : [0], test: 4},
+	{name: "alpine-03",url:`http://${ip}:9003/`, status: "#cccccc",  scoreTrend : [0], test: 4}
 ];
 
 
@@ -77,12 +77,14 @@ function start(app)
 				let payload = JSON.parse(message);
 				server.memoryLoad = payload.memoryLoad;
 				server.cpu = payload.cpu;
+				server.test = payload.cpu;
 				updateHealth(server);
 			}
 		}
 	});
 
 	// LATENCY CHECK
+	// Here, the monitor service will be extended to collect data related to latency and service status.
 	var latency = setInterval( function () 
 	{
 		for( var server of servers )
@@ -98,11 +100,14 @@ function start(app)
 				got(server.url, {timeout: 5000, throwHttpErrors: false}).then(function(res)
 				{
 					// TASK 2
-					// captureServer.statusCode = ???;
-					// captureServer.latency = ???;
+					// console.log(res)
+					captureServer.statusCode = res.statusCode;
+					server.statusCode = res.statusCode;
+					server.latency = res.timings.end-res.timings.start;
+					captureServer.latency = res.timings.end-res.timings.start;
 				}).catch( e => 
 				{
-					// console.log(e);
+					console.log(e);
 					captureServer.statusCode = e.code;
 					captureServer.latency = 5000;
 				});
@@ -114,8 +119,29 @@ function start(app)
 // TASK 3
 function updateHealth(server)
 {
-	let score = 0;
+	let score = 4;
 	// Update score calculation.
+
+	console.log(server)
+
+	//Update the code inside dashboard/metrics/index.js#updateHealth(server) to create a metric that calculates an overall score from memoryLoad, cpu, latency, and statusCode.
+
+	if(server.statusCode!=200){
+		score = score-1;
+	}
+	if(server.latency>=27){
+		score = score-1;
+	}
+	if(server.memoryLoad>=27){
+		score = score-1;
+	}
+	if(server.cpu>=1){
+		score = score-1
+	}
+	console.log(server.statusCode,server.latency,server.cpu,server.memoryLoad);
+	// console.log(typeof(server.statusCode),typeof(server.latency),typeof(server.cpu),typeof(server.memoryLoad));
+
+	console.log(score)
 
 	server.status = score2color(score/4);
 
